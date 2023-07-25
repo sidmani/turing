@@ -1,0 +1,19 @@
+start: meta* state*
+
+?word: /[a-zA-Z0-9()]+/
+
+init: "init" word
+blank_symbol: "blank" word
+alphabet: "alphabet" "[" [word ("," word)*] + "]"
+halting_state: "halting_state" word
+?meta: init | blank_symbol | alphabet | halting_state
+
+state: "state" word "{" rule* "}"
+direction: "L" -> l | "R" -> r | "-" -> x
+
+# state, character : state, char, dir
+rule:  word ":" word word direction
+
+%import common.ESCAPED_STRING -> STRING
+%import common.WS
+%ignore WS
