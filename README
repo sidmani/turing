@@ -1,6 +1,0 @@
-Simulate a Turing machine. To try it out:
-```
-pip install -r requirements.txt
-python -m tm examples/square.tm examples/square.tape 0
-```
-(the arguments, in order: the machine definition, the initial tape, and the initial head position)
