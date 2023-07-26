@@ -1,6 +1,10 @@
-start: meta* state*
+start: statement*
 
-?word: /[a-zA-Z0-9()]+/
+?statement: meta | state | comment
+
+comment: "#" /.+/
+
+?word: /[a-zA-Z0-9()_]+/
 
 init: "init" word
 blank_symbol: "blank" word

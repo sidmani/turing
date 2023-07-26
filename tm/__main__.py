@@ -16,15 +16,14 @@ class TMTransformer(Transformer):
         for d in data:
             if isinstance(d, State):
                 states.append(d)
-            else:
-                if d.data == "alphabet":
-                    alphabet = set(map(lambda x: x.value, d.children))
-                elif d.data == "init":
-                    init = d.children[0].value
-                elif d.data == "blank_symbol":
-                    blank = d.children[0].value
-                elif d.data == "halting_state":
-                    halting_states.append(d.children[0].value)
+            elif d.data == "alphabet":
+                alphabet = set(map(lambda x: x.value, d.children))
+            elif d.data == "init":
+                init = d.children[0].value
+            elif d.data == "blank_symbol":
+                blank = d.children[0].value
+            elif d.data == "halting_state":
+                halting_states.append(d.children[0].value)
 
         return TM(alphabet=alphabet, init=init, blank=blank, states=states, halting_states=halting_states)
 
