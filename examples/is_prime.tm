@@ -1,6 +1,6 @@
 alphabet [A, B, 1, X, 0, NOT_PRIME, PRIME]
 blank 0
-halting_state H
+halt H
 init Q0
 
 # write "2" in unary on the right side of B and move back to B
@@ -20,7 +20,7 @@ state Q2 {
 
 state Q3 {
     1: Q3 1 L
-    B: Q5 B R 
+    B: Q14 B L
 }
 
 # move right until we get to the first 1 right of B

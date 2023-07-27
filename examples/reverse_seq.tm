@@ -2,7 +2,7 @@
 
 alphabet [A, B, C, D, 0]
 blank 0
-halting_state H
+halt H
 init Q0
 
 # read the leftmost untouched symbol

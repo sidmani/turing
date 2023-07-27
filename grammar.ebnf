@@ -9,8 +9,8 @@ comment: "#" /.+/
 init: "init" word
 blank_symbol: "blank" word
 alphabet: "alphabet" "[" [word ("," word)*] + "]"
-halting_state: "halting_state" word
-?meta: init | blank_symbol | alphabet | halting_state
+halt: "halt" word
+?meta: init | blank_symbol | alphabet | halt
 
 state: "state" word "{" rule* "}"
 direction: "L" -> l | "R" -> r | "-" -> x

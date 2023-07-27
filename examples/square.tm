@@ -1,6 +1,6 @@
 alphabet [A, B, 1, 0, X, Y, Z]
 blank 0
-halting_state H
+halt H
 init Q0
 
 state Q0 {

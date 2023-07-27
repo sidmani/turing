@@ -22,7 +22,7 @@ class TMTransformer(Transformer):
                 init = d.children[0].value
             elif d.data == "blank_symbol":
                 blank = d.children[0].value
-            elif d.data == "halting_state":
+            elif d.data == "halt":
                 halting_states.append(d.children[0].value)
 
         return TM(alphabet=alphabet, init=init, blank=blank, states=states, halting_states=halting_states)
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     with open(args.filename, "r") as file:
         defn_tree = parser.parse(file.read())
     tm = TMTransformer().transform(defn_tree)
-    pprint(dict(tm._asdict()))
+    # pprint(dict(tm._asdict()))
     verify_fwd_det(tm)
     verify_alphabet(tm)
     verify_states(tm)
@@ -138,5 +138,5 @@ if __name__ == "__main__":
     
     machine = (tm.init, tape, args.position)
     while machine is not None:
-        print(machine)
+        print(" ".join(machine[1]))
         machine = step(tm, *machine)
