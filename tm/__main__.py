@@ -84,9 +84,13 @@ def step(tm, state, tape, pos):
     if state in tm.halting_states:
         return None
 
-    rules = [x for x in tm.states if x.name == state][0].rules
+    state = [x for x in tm.states if x.name == state][0]
+    rules = state.rules
     char = tape[pos]
-    rule = [x for x in rules if x.init_char == char][0]
+    try:
+        rule = [x for x in rules if x.init_char == char][0]
+    except Exception:
+        raise Exception(f"Unhandled symbol {char} in state {state.name}")
 
     tape[pos] = rule.final_char
     new_state = rule.final_state
@@ -121,7 +125,6 @@ if __name__ == "__main__":
     with open(args.filename, "r") as file:
         defn_tree = parser.parse(file.read())
     tm = TMTransformer().transform(defn_tree)
-    # pprint(dict(tm._asdict()))
     verify_fwd_det(tm)
     verify_alphabet(tm)
     verify_states(tm)
@@ -138,5 +141,13 @@ if __name__ == "__main__":
     
     machine = (tm.init, tape, args.position)
     while machine is not None:
-        print(" ".join(machine[1]))
+        string = ""
+        for idx, c in enumerate(machine[1]):
+            if idx == machine[2]:
+                string += f" \033[91m\033[1m{c}\033[0m"
+            else:
+                string += f" {c}"
+        
+        string += f" \033[92m[{machine[0]}]\033[0m"
+        print(string)
         machine = step(tm, *machine)

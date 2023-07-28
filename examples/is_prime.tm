@@ -7,19 +7,13 @@ init Q0
 state Q0 {
     A: Q0 A R
     1: Q0 1 R
-    B: Q1 B R
-}
-
-state Q1 {
+    B: Q0 B R
     0: Q2 1 R
 }
 
 state Q2 {
-    0: Q3 1 -
-}
-
-state Q3 {
-    1: Q3 1 L
+    0: Q2 1 L
+    1: Q2 1 L
     B: Q14 B L
 }
 
