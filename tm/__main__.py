@@ -1,7 +1,6 @@
 from collections import namedtuple
 from lark import Lark
 from lark import Transformer
-from pprint import pprint
 import argparse
 
 State = namedtuple("State", ["name", "rules"])
