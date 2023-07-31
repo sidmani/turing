@@ -30,12 +30,12 @@ state Q3 {
     X: Q5 Y L
 }
 
-state Q5 {
-    X: Q4 X -
-    A: H A -
-}
-
 state Q4 {
     X: Q4 1 L
     A: Q0 A -
+}
+
+state Q5 {
+    X: Q4 X -
+    A: H A -
 }

@@ -1,4 +1,5 @@
 from collections import namedtuple
+import re
 from lark import Lark
 from lark import Transformer
 import argparse
@@ -107,6 +108,19 @@ def step(tm, state, tape, pos):
     
     return new_state, tape, new_pos
 
+def print_machine(state, tape, pos, window=0):
+    string = ""
+    for idx, c in enumerate(tape):
+        if window > 0 and (idx < pos - window or idx > pos + window):
+            continue
+        if idx == pos:
+            string += f" \033[91m\033[1m{c}\033[0m"
+        else:
+            string += f" {c}"
+    
+    string += f" \033[92m[{state}]\033[0m"
+    print(string)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Read the content of a file.")
     parser.add_argument(
@@ -115,6 +129,9 @@ if __name__ == "__main__":
     parser.add_argument("tape", help="Name of the file containing the tape.")
     parser.add_argument(
         "position", help="the location of the head on the tape", type=int
+    )
+    parser.add_argument(
+        "--suppress", help="suppress states from the log", type=str, nargs="+", default=[], required=False
     )
     args = parser.parse_args()
 
@@ -129,7 +146,11 @@ if __name__ == "__main__":
     verify_states(tm)
 
     with open(args.tape) as file:
-        tape = file.read().split(" ")
+        tape = file.read()
+        tape = tape.replace("\n", " ")
+        tape = re.sub(r' +', " ", tape)
+        tape = tape.strip()
+        tape = tape.split(" ")
         tape_alpha = set(tape)
         tape_diff = tape_alpha - tm.alphabet
         if len(tape_diff) > 0:
@@ -139,14 +160,26 @@ if __name__ == "__main__":
         raise Exception("Illegal position")
     
     machine = (tm.init, tape, args.position)
+    printed_suppress = False
     while machine is not None:
-        string = ""
-        for idx, c in enumerate(machine[1]):
-            if idx == machine[2]:
-                string += f" \033[91m\033[1m{c}\033[0m"
-            else:
-                string += f" {c}"
-        
-        string += f" \033[92m[{machine[0]}]\033[0m"
-        print(string)
-        machine = step(tm, *machine)
+        if machine[0] in args.suppress:
+            if not printed_suppress:
+                print(f"\033[92m[{machine[0]}]\033[0m")
+                printed_suppress = True
+        else:
+            print_machine(*machine, window=40)
+            printed_suppress = False
+
+
+        old_machine = machine
+        try:
+            machine = step(tm, *machine)
+        except Exception as e:
+            print_machine(*old_machine)
+            raise e
+            
+        if machine is not None and machine[0] != old_machine[0]:
+            printed_suppress = False
+
+        if machine is None:
+            print_machine(*old_machine)
