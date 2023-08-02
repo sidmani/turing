@@ -3,6 +3,10 @@ import re
 from lark import Lark
 from lark import Transformer
 import argparse
+import sys
+from .verify import verify_alphabet, verify_fwd_det, verify_states, verify_reversible
+
+sys.tracebacklimit = 0
 
 State = namedtuple("State", ["name", "rules"])
 Rule = namedtuple("Rule", ["init_char", "final_state", "final_char", "dir"])
@@ -25,7 +29,13 @@ class TMTransformer(Transformer):
             elif d.data == "halt":
                 halting_states.append(d.children[0].value)
 
-        return TM(alphabet=alphabet, init=init, blank=blank, states=states, halting_states=halting_states)
+        return TM(
+            alphabet=alphabet,
+            init=init,
+            blank=blank,
+            states=states,
+            halting_states=halting_states,
+        )
 
     def state(self, data):
         return State(data[0].value, data[1:])
@@ -33,52 +43,6 @@ class TMTransformer(Transformer):
     def rule(self, data):
         return Rule(data[0].value, data[1].value, data[2].value, data[3].data)
 
-
-def verify_fwd_det(tm):
-    all_states = set(tm.halting_states)
-    for state in tm.states:
-        if state.name in all_states:
-            raise Exception(
-                f"TM is nondeterministic; state {state.name} appears multiple times"
-            )
-        all_states.add(state.name)
-
-        init_chars = set()
-        for rule in state.rules:
-            if rule.init_char in init_chars:
-                raise Exception(
-                    f"TM is nondeterministic at rule {rule} in state {state.name}"
-                )
-            init_chars.add(rule.init_char)
-
-
-def verify_alphabet(tm):
-    for state in tm.states:
-        for rule in state.rules:
-            if rule.init_char not in tm.alphabet:
-                raise Exception(
-                    f"Token '{rule.init_char}' not in alphabet at rule {rule}"
-                )
-            if rule.final_char not in tm.alphabet:
-                raise Exception(
-                    f"Token '{rule.final_char}' not in alphabet at rule {rule}"
-                )
-    
-    if tm.blank not in tm.alphabet:
-        raise Exception(
-            f"Token '{tm.blank}' (blank) not in alphabet"
-        )
-
-
-def verify_states(tm):
-    all_states = set(map(lambda s: s.name, tm.states)) | set(tm.halting_states)
-    for state in tm.states:
-        for rule in state.rules:
-            if rule.final_state not in all_states:
-                raise Exception(f"Unknown state '{rule.final_state}' at rule {rule}")
-    
-    if tm.init not in all_states:
-        raise Exception(f"Unknown initial state '{tm.init}'")
 
 def step(tm, state, tape, pos):
     if state in tm.halting_states:
@@ -105,8 +69,9 @@ def step(tm, state, tape, pos):
             tape = tape + [tm.blank]
     else:
         new_pos = pos
-    
+
     return new_state, tape, new_pos
+
 
 def print_machine(state, tape, pos, window=0):
     string = ""
@@ -117,9 +82,10 @@ def print_machine(state, tape, pos, window=0):
             string += f" \033[91m\033[1m{c}\033[0m"
         else:
             string += f" {c}"
-    
+
     string += f" \033[92m[{state}]\033[0m"
     print(string)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Read the content of a file.")
@@ -131,7 +97,15 @@ if __name__ == "__main__":
         "position", help="the location of the head on the tape", type=int
     )
     parser.add_argument(
-        "--suppress", help="suppress states from the log", type=str, nargs="+", default=[], required=False
+        "--suppress",
+        help="suppress states from the log",
+        type=str,
+        nargs="+",
+        default=[],
+        required=False,
+    )
+    parser.add_argument(
+        "--check-rev", help="verify that the machine is reversible", action="store_true"
     )
     args = parser.parse_args()
 
@@ -144,11 +118,13 @@ if __name__ == "__main__":
     verify_fwd_det(tm)
     verify_alphabet(tm)
     verify_states(tm)
+    if args.check_rev:
+        verify_reversible(tm)
 
     with open(args.tape) as file:
         tape = file.read()
         tape = tape.replace("\n", " ")
-        tape = re.sub(r' +', " ", tape)
+        tape = re.sub(r" +", " ", tape)
         tape = tape.strip()
         tape = tape.split(" ")
         tape_alpha = set(tape)
@@ -158,7 +134,7 @@ if __name__ == "__main__":
 
     if args.position < 0 or args.position >= len(tape):
         raise Exception("Illegal position")
-    
+
     machine = (tm.init, tape, args.position)
     printed_suppress = False
     while machine is not None:
@@ -170,14 +146,13 @@ if __name__ == "__main__":
             print_machine(*machine, window=40)
             printed_suppress = False
 
-
         old_machine = machine
         try:
             machine = step(tm, *machine)
         except Exception as e:
             print_machine(*old_machine)
             raise e
-            
+
         if machine is not None and machine[0] != old_machine[0]:
             printed_suppress = False
 
