@@ -46,20 +46,20 @@ def verify_states(tm):
 
 
 def verify_reversible(tm):
-    # all_states = set(map(lambda s: s.name, tm.states)) | set(tm.halting_states)
-    for state in tm.states:
+    all_states = set(map(lambda s: s.name, tm.states)) | set(tm.halting_states)
+    for state_name in all_states:
         # find all rules that lead to this state
         previous_rules = []
         for previous_state in tm.states:
             for rule in previous_state.rules:
-                if rule.final_state == state.name:
+                if rule.final_state == state_name:
                     previous_rules.append(rule)
         
         direction = None
         terminal_syms = set()
         for rule in previous_rules:
             if rule.final_char in terminal_syms:
-                raise Exception(f"Repeated final symbol {rule.final_char} in rule {rule} when entering state {state.name}")
+                raise Exception(f"Repeated final symbol {rule.final_char} in rule {rule} when entering state {state_name}")
             
             terminal_syms.add(rule.final_char)
 
@@ -68,5 +68,5 @@ def verify_reversible(tm):
                 continue
 
             if direction != rule.dir:
-                raise Exception(f"Incoming rule {rule} to state {state.name} has non-matching direction")
+                raise Exception(f"Incoming rule {rule} to state {state_name} has non-matching direction")
         
